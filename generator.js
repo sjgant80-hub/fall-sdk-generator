@@ -1,7 +1,19 @@
-// fall-sdk-generator · WebLLM template forge · AI-Native Solutions · MIT
+// fall-sdk-generator · fall-kit consumer · AI-Native Solutions · MIT
 // Fills foldkit-sdk + foldkit-mcp exemplar shape for any estate tool.
-
-import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
+//
+// Substrate: fall-kit (inlined via <script> in index.html)
+//   - T0 off (default)          · returns null · falls back to mechanical template-rename
+//   - T2 WebLLM (1B/3B/7B/8B/70B) · sovereign, in-browser, one-time download
+//   - T3 BYOK Anthropic/OpenAI/Google · user brings key, sent direct to provider
+//
+// Alternate estate cascades a dev could swap in:
+//   - fallcompass       · 8-provider LLM cascade shim
+//   - fall-mcp-bridge   · uniform MCP wrapping any LLM (8 adapters)
+//   - fallcore          · Anthropic-compatible local proxy
+//
+// Note: FallKit.aiComplete signature is (systemPrompt, userMsg, maxTokens) — no temperature
+// override exposed. Estate consensus (per fall-kit) picks provider-sane defaults. If you need
+// strict low-temp determinism (0.15) you can call the engine directly via FallKit.state.ai.engine.
 
 const SDK_FILES = [
   'src/index.js',
@@ -49,7 +61,6 @@ async function findMainSource(owner, repo, token) {
 }
 
 function extractJson(text) {
-  // find outer {...}
   let start = text.indexOf('{');
   if (start < 0) throw new Error('no JSON object found');
   let depth = 0, inStr = false, esc = false;
@@ -70,7 +81,6 @@ function robustParse(text) {
   try { raw = extractJson(text); } catch (e) { throw new Error('extract: ' + e.message); }
   try { return JSON.parse(raw); }
   catch {
-    // salvage: strip trailing commas
     const cleaned = raw.replace(/,\s*([}\]])/g, '$1');
     return JSON.parse(cleaned);
   }
@@ -79,7 +89,6 @@ function robustParse(text) {
 function shapeSummary(template) {
   const out = {};
   for (const [p, content] of Object.entries(template)) {
-    // compact each file so prompt stays under context; keep whole small files, snippet large ones
     if (content.length <= 1800) out[p] = content;
     else out[p] = content.slice(0, 900) + '\n// ...\n' + content.slice(-700);
   }
@@ -97,7 +106,6 @@ function renameFoldkit(text, name) {
 }
 
 // ---- STORE-method inline zip (no compression) ----
-// CRC32 table
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -125,42 +133,21 @@ function buildStoreZip(files) {
     const data = encodeStr(content);
     const c = crc32(data);
     const size = data.length;
-    // local file header
     const lfh = [
-      ...u32(0x04034b50),      // signature
-      ...u16(20),              // version
-      ...u16(0),               // flags
-      ...u16(0),               // method STORE
-      ...u16(0),               // time
-      ...u16(0x21),            // date (some valid date)
-      ...u32(c),               // crc32
-      ...u32(size),            // compressed size
-      ...u32(size),            // uncompressed size
-      ...u16(nameBytes.length),
-      ...u16(0)                // extra
+      ...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(0),
+      ...u16(0), ...u16(0x21),
+      ...u32(c), ...u32(size), ...u32(size),
+      ...u16(nameBytes.length), ...u16(0)
     ];
     parts.push(new Uint8Array(lfh));
     parts.push(nameBytes);
     parts.push(data);
-    // central directory record
     const cdh = [
-      ...u32(0x02014b50),
-      ...u16(20),              // version made by
-      ...u16(20),              // version needed
-      ...u16(0),               // flags
-      ...u16(0),               // method
-      ...u16(0),               // time
-      ...u16(0x21),            // date
-      ...u32(c),
-      ...u32(size),
-      ...u32(size),
-      ...u16(nameBytes.length),
-      ...u16(0),               // extra
-      ...u16(0),               // comment
-      ...u16(0),               // disk
-      ...u16(0),               // internal attr
-      ...u32(0),               // external attr
-      ...u32(offset)
+      ...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0),
+      ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(c), ...u32(size), ...u32(size),
+      ...u16(nameBytes.length), ...u16(0), ...u16(0),
+      ...u16(0), ...u16(0), ...u32(0), ...u32(offset)
     ];
     central.push(new Uint8Array(cdh));
     central.push(nameBytes);
@@ -170,25 +157,19 @@ function buildStoreZip(files) {
   let centralLen = 0;
   for (const p of central) centralLen += p.length;
   const eocd = new Uint8Array([
-    ...u32(0x06054b50),
-    ...u16(0),
-    ...u16(0),
-    ...u16(Object.keys(files).length),
-    ...u16(Object.keys(files).length),
-    ...u32(centralLen),
-    ...u32(centralStart),
-    ...u16(0)
+    ...u32(0x06054b50), ...u16(0), ...u16(0),
+    ...u16(Object.keys(files).length), ...u16(Object.keys(files).length),
+    ...u32(centralLen), ...u32(centralStart), ...u16(0)
   ]);
   return new Blob([...parts, ...central, eocd], { type: 'application/zip' });
 }
 
-// ---- Fallback synth (when Llama returns garbage on tiny models) ----
+// ---- Fallback synth (T0, or when Llama returns garbage) ----
 function synthSDK(name, source, template) {
   const files = {};
   for (const p of SDK_FILES) {
     if (template[p]) files[p] = renameFoldkit(template[p], name);
   }
-  // patch package.json name
   try {
     const pkg = JSON.parse(files['package.json']);
     pkg.name = `@ai-native-solutions/${name}-sdk`;
@@ -197,8 +178,7 @@ function synthSDK(name, source, template) {
     pkg.homepage = `https://sjgant80-hub.github.io/${name}-sdk/`;
     files['package.json'] = JSON.stringify(pkg, null, 2);
   } catch {}
-  // slim source-based index.js
-  files['src/index.js'] = `// ${name} · SDK · AI-Native Solutions · MIT\n// generated by fall-sdk-generator (fallback synth)\n\n${source}\n`;
+  files['src/index.js'] = `// ${name} · SDK · AI-Native Solutions · MIT\n// generated by fall-sdk-generator (T0 mechanical template-rename)\n\n${source}\n`;
   return files;
 }
 function synthMCP(name, template) {
@@ -220,14 +200,34 @@ function synthMCP(name, template) {
 }
 
 export class SDKGenerator {
-  constructor() { this.engine = null; this.modelId = null; }
+  constructor() {
+    if (typeof window === 'undefined' || !window.FallKit) {
+      throw new Error('fall-kit not loaded · inline fall-kit.js as a <script> before generator.js');
+    }
+    this.kit = window.FallKit;
+  }
 
-  async loadEngine(modelId, progressCb) {
-    this.modelId = modelId;
-    this.engine = await CreateMLCEngine(modelId, {
-      initProgressCallback: (r) => progressCb && progressCb({ progress: r.progress || 0, text: r.text || 'loading' })
-    });
-    return this.engine;
+  // Kept for wizard call-site compatibility, but delegates to fall-kit.
+  // The wizard calls this once user picks tier — for T2 it loads the model; for T0/T3 it's a no-op.
+  async loadEngine(modelKey, progressCb) {
+    const tier = this.kit.aiTier();
+    if (tier !== 'T2') {
+      // T0 or T3 — nothing to preload
+      progressCb && progressCb({ progress: 1, text: `tier ${tier} · no engine preload needed` });
+      return null;
+    }
+    // Poll fall-kit progress while it loads WebLLM
+    const kit = this.kit;
+    let done = false;
+    const p = kit.loadWebLLM(modelKey).finally(() => { done = true; });
+    while (!done) {
+      const st = kit.state.ai;
+      if (progressCb) progressCb({ progress: (st.progress || 0) / 100, text: st.ready ? 'ready' : 'loading ' + Math.round(st.progress || 0) + '%' });
+      await new Promise(r => setTimeout(r, 250));
+    }
+    await p;
+    progressCb && progressCb({ progress: 1, text: 'engine ready' });
+    return kit.state.ai.engine;
   }
 
   async loadExemplars() {
@@ -269,39 +269,37 @@ Generate the ${target.name}-${kind} repo files matching EXEMPLAR shape. Rename a
 
 Output JSON with these keys ONLY: ${JSON.stringify(targetFiles)}
 Return the JSON object now.`;
-    return [
-      { role: 'system', content: system },
-      { role: 'user', content: user }
-    ];
-  }
-
-  async _streamGenerate(messages, progressCb) {
-    let full = '';
-    const chunks = await this.engine.chat.completions.create({
-      messages,
-      stream: true,
-      temperature: 0.15,
-      top_p: 0.9,
-      seed: 42,
-      max_tokens: 8192
-    });
-    let n = 0;
-    for await (const c of chunks) {
-      const d = c.choices?.[0]?.delta?.content || '';
-      full += d;
-      n++;
-      if (progressCb && n % 6 === 0) progressCb({ type: 'chunk', pct: Math.min(90, full.length / 120) });
-    }
-    return full;
+    return { system, user };
   }
 
   async _generate(kind, target, template, targetFiles, progressCb) {
+    const tier = this.kit.aiTier();
+
+    // T0 · caller degrades gracefully · straight to template-rename
+    if (tier === 'T0') {
+      progressCb && progressCb({ type: 'info', msg: 'T0 · AI off · using mechanical template-rename' });
+      progressCb && progressCb({ type: 'chunk', pct: 90 });
+      const files = kind === 'sdk'
+        ? synthSDK(target.name, target.source || '', template)
+        : synthMCP(target.name, template);
+      for (const p of Object.keys(files)) progressCb && progressCb({ type: 'file', path: p, size: files[p].length });
+      return files;
+    }
+
     const MAX = 3;
     for (let i = 1; i <= MAX; i++) {
       try {
-        progressCb && progressCb({ type: 'info', msg: `attempt ${i} · streaming` });
-        const messages = this._buildPrompt(kind, target, template, targetFiles);
-        const text = await this._streamGenerate(messages, progressCb);
+        progressCb && progressCb({ type: 'info', msg: `attempt ${i} · tier ${tier} · calling FallKit.aiComplete` });
+        progressCb && progressCb({ type: 'chunk', pct: 10 + i * 5 });
+        const { system, user } = this._buildPrompt(kind, target, template, targetFiles);
+        // fall-kit's aiComplete does not stream; use a coarse chunk tick before + after
+        const text = await this.kit.aiComplete(system, user, 4000);
+        if (text == null) {
+          // FallKit returned null (tier config drifted mid-run, or key missing on T3)
+          progressCb && progressCb({ type: 'retry', n: i, reason: 'aiComplete returned null · check tier + credentials in AI chip' });
+          break; // no point retrying · fall through to synth
+        }
+        progressCb && progressCb({ type: 'chunk', pct: 85 });
         const parsed = robustParse(text);
         const files = {};
         for (const p of targetFiles) {
@@ -311,7 +309,6 @@ Return the JSON object now.`;
           }
         }
         if (Object.keys(files).length >= Math.min(3, targetFiles.length)) {
-          // patch any missing files from template rename
           for (const p of targetFiles) {
             if (!files[p] && template[p]) {
               files[p] = renameFoldkit(template[p], target.name);
@@ -325,8 +322,9 @@ Return the JSON object now.`;
         progressCb && progressCb({ type: 'retry', n: i, reason: e.message });
       }
     }
-    // fallback synth
-    progressCb && progressCb({ type: 'info', msg: 'llama unstable · using template-rename fallback' });
+
+    // final fallback synth
+    progressCb && progressCb({ type: 'info', msg: 'AI unstable or unavailable · using template-rename fallback' });
     return kind === 'sdk'
       ? synthSDK(target.name, target.source || '', template)
       : synthMCP(target.name, template);
@@ -341,13 +339,11 @@ Return the JSON object now.`;
   }
 
   packageAsZip(files, name) {
-    // include LICENSE
     const complete = {
       ...files,
       'LICENSE': `MIT License\n\nCopyright (c) 2026 AI-Native Solutions\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the "Software"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.\n`,
       '.nojekyll': ''
     };
-    // prefix with name/ so unzip creates a folder
     const prefixed = {};
     for (const [p, c] of Object.entries(complete)) prefixed[`${name}/${p}`] = c;
     return buildStoreZip(prefixed);

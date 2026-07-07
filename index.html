@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>fall-sdk-generator · WebLLM template forge</title>
-<meta name="description" content="WebLLM-powered SDK+MCP generator. Consumes foldkit-sdk + foldkit-mcp exemplars, fills their shape for any estate tool. Runs Llama 3.1 8B in your browser. Zero Claude tokens per repo.">
+<title>fall-sdk-generator · fall-kit template forge</title>
+<meta name="description" content="Estate-native SDK+MCP generator. Consumes foldkit-sdk + foldkit-mcp exemplars, fills their shape via the fall-kit cascade (T0 off · T2 WebLLM · T3 BYOK). Zero Claude tokens per repo when using T2.">
 <meta name="author" content="AI-Native Solutions">
 <meta name="theme-color" content="#1a1a1e">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231a1a1e'/%3E%3Ctext x='16' y='22' font-family='serif' font-size='18' fill='%237a9c7e' text-anchor='middle'%3E%E2%97%8A%3C/text%3E%3C/svg%3E">
@@ -101,16 +101,17 @@ footer em{color:var(--sage);font-style:italic;font-family:var(--serif);font-size
 
 <main>
 <div class="hero">
-  <h1><em>WebLLM</em> template forge</h1>
-  <p>Consumes the <em>foldkit-sdk</em> and <em>foldkit-mcp</em> exemplars, then fills their shape for any estate tool using Llama 3.1 8B running in your browser. <em>Zero Claude tokens per repo.</em></p>
+  <h1><em>fall-kit</em> template forge</h1>
+  <p>Consumes the <em>foldkit-sdk</em> and <em>foldkit-mcp</em> exemplars, then fills their shape for any estate tool via the <em>fall-kit</em> cascade — <span class="pill">T0 off</span> <span class="pill">T2 WebLLM 1B–70B</span> <span class="pill">T3 BYOK Anthropic/OpenAI/Gemini</span>. Alternate substrates: <span class="pill amber">fallcompass</span> <span class="pill amber">fall-mcp-bridge</span> <span class="pill amber">fallcore</span>.</p>
 </div>
 
 <div class="step on" id="s1">
-  <div class="step-head"><div class="step-num">1</div><h2>Load <em>WebLLM</em></h2></div>
-  <p>Loads Llama 3.1 8B via <span class="pill">@mlc-ai/web-llm</span>. First run downloads ~4GB to IndexedDB; subsequent loads are seconds.</p>
-  <button class="big-btn" id="load-engine">load engine</button>
+  <div class="step-head"><div class="step-num">1</div><h2>Configure <em>cascade</em></h2></div>
+  <p>Open <em>fall-kit</em> settings to pick a tier. <span class="pill">T0</span> works with no AI at all (mechanical template rename). <span class="pill">T2</span> runs WebLLM in your browser — pick 1B (700MB) up to 70B (40GB). <span class="pill">T3</span> uses your Anthropic / OpenAI / Gemini key, sent direct to the provider, never proxied.</p>
+  <button class="big-btn" id="open-cascade">open cascade settings</button>
+  <button class="big-btn ghost" id="load-engine">preload T2 model</button>
   <div class="progress"><div class="progress-fill" id="p1"></div></div>
-  <div class="status" id="st1">idle</div>
+  <div class="status" id="st1">tier: T0 · off (default) · click <em>open cascade settings</em> to change</div>
 </div>
 
 <div class="step" id="s2">
@@ -149,11 +150,12 @@ footer em{color:var(--sage);font-style:italic;font-family:var(--serif);font-size
   <div class="step-head"><div class="step-num">4</div><h2>Configure</h2></div>
   <div class="row">
     <div class="field"><label>github token (optional · for private repos)</label><input id="gh-token" type="password" placeholder="ghp_..."></div>
-    <div class="field"><label>model</label><select id="model">
-      <option value="Llama-3.1-8B-Instruct-q4f32_1-MLC">Llama 3.1 8B · q4f32 · default</option>
-      <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 3B · faster · less accurate</option>
-      <option value="Llama-3.2-1B-Instruct-q4f32_1-MLC">Llama 3.2 1B · tiny · draft-quality only</option>
-      <option value="Qwen2.5-7B-Instruct-q4f16_1-MLC">Qwen 2.5 7B · alt · strong on code</option>
+    <div class="field"><label>T2 WebLLM model (used only if tier=T2)</label><select id="model">
+      <option value="llama-3b">Llama 3.2 3B · balanced · default · ~2GB</option>
+      <option value="llama-1b">Llama 3.2 1B · fast · draft-quality · ~700MB</option>
+      <option value="qwen-7b">Qwen 2.5 7B · capable · needs decent GPU · ~5GB</option>
+      <option value="llama-8b">Llama 3.1 8B · common · needs decent GPU · ~5GB</option>
+      <option value="llama-70b">Llama 3.1 70B · frontier · serious GPU · ~40GB</option>
     </select></div>
   </div>
   <div class="check"><input type="checkbox" id="skip-exists" checked> <label for="skip-exists">skip repos that already have <span class="pill">-sdk</span> / <span class="pill">-mcp</span> companions</label></div>
@@ -198,8 +200,19 @@ footer em{color:var(--sage);font-style:italic;font-family:var(--serif);font-size
 </main>
 
 <footer>
-  <em>fall-sdk-generator</em> · <span>WebLLM template forge</span> · AI-Native Solutions · MIT
+  <em>fall-sdk-generator</em> · <span>fall-kit template forge</span> · AI-Native Solutions · MIT<br>
+  <span style="font-size:9.5px">substrate: <em>fall-kit</em> · alternates: <em>fallcompass</em> · <em>fall-mcp-bridge</em> · <em>fallcore</em></span>
 </footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     fall-kit · v1.2.0 · inlined substrate cascade · MIT · ◊·κ=1
+     Source: https://sjgant80-hub.github.io/fall-kit/fall-kit.js
+     Provides FallKit.aiComplete(sys, msg, maxTokens) → string|null
+     T0 off (default) · T2 WebLLM 1B-70B · T3 BYOK Anthropic/OpenAI/Google
+     Inlined per fall-kit README Option 1 · preserves single-origin sovereignty
+     Alternate estate cascades: fallcompass, fall-mcp-bridge, fallcore
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script src="fall-kit.js"></script>
 
 <script type="module">
 import { SDKGenerator } from './generator.js';
@@ -256,21 +269,50 @@ function renderFiles(hostId, files){
   }
 }
 
-// ---- Step 1
+// ---- Step 1 · cascade configuration via fall-kit
+FallKit.init({ seedName: 'fall-sdk-generator' });
+
+function refreshTierStatus(){
+  const tier = FallKit.aiTier();
+  const st = FallKit.state.ai;
+  let msg;
+  if (tier === 'T0') msg = 'tier: T0 · off · will use mechanical template-rename fallback';
+  else if (tier === 'T2') msg = st.ready ? 'tier: T2 · WebLLM ready · ' + (st.model || '') : (st.loading ? 'tier: T2 · loading ' + Math.round(st.progress||0) + '%' : 'tier: T2 · model not loaded · click preload T2 model');
+  else if (tier === 'T3') msg = FallKit.state.config.api_key ? 'tier: T3 · BYOK · ' + (FallKit.state.config.api_provider || 'anthropic') + ' · key set' : 'tier: T3 · BYOK · no key set · open cascade settings';
+  const cls = (tier === 'T0') ? 'warn' : ((tier === 'T2' && st.ready) || (tier === 'T3' && FallKit.state.config.api_key)) ? 'ok' : 'warn';
+  setStatus('st1', msg, cls);
+  state.engineReady = (tier === 'T0') || (tier === 'T2' && st.ready) || (tier === 'T3' && !!FallKit.state.config.api_key);
+  if (state.engineReady) markStep(2);
+}
+refreshTierStatus();
+
+$('open-cascade').addEventListener('click', () => {
+  FallKit.openSettings();
+  // fall-kit closes modal after save · poll briefly to refresh our status line
+  const interval = setInterval(() => {
+    if (!document.getElementById('fk-modal-bg')) { clearInterval(interval); refreshTierStatus(); }
+  }, 300);
+});
+
 $('load-engine').addEventListener('click', async () => {
   markStep(1);
+  const modelKey = $('model').value;
+  const tier = FallKit.aiTier();
+  if (tier !== 'T2') {
+    // Auto-flip to T2 so preload actually means something
+    FallKit.state.config.ai_tier = 'T2';
+    try { localStorage.setItem('fall-kit.config', JSON.stringify(FallKit.state.config)); } catch {}
+    FallKit.renderAiChip();
+  }
   $('load-engine').disabled = true;
-  setStatus('st1', 'loading engine · this may take minutes on first run');
+  setStatus('st1', 'loading T2 WebLLM · ' + modelKey + ' · this may take minutes on first run');
   try {
-    const modelId = $('model').value;
-    await gen.loadEngine(modelId, (r) => {
-      setProgress('p1', r.progress * 100);
-      setStatus('st1', r.text);
+    await gen.loadEngine(modelKey, (r) => {
+      setProgress('p1', (r.progress || 0) * 100);
+      setStatus('st1', r.text || 'loading');
     });
-    state.engineReady = true;
-    setStatus('st1', 'engine ready · ' + modelId, 'ok');
     setProgress('p1', 100);
-    markStep(2);
+    refreshTierStatus();
   } catch(e){
     setStatus('st1', 'engine failed: ' + e.message, 'err');
     $('load-engine').disabled = false;
@@ -333,8 +375,11 @@ async function checkExists(name){
 
 // ---- Step 5 SDK
 $('gen-sdk').addEventListener('click', async () => {
-  if (!state.engineReady){ setStatus('st5','load engine first','err'); return; }
   if (!state.exemplars){ setStatus('st5','load exemplars first','err'); return; }
+  // T0 works without engine · T2 requires WebLLM loaded · T3 requires key
+  const tier = FallKit.aiTier();
+  if (tier === 'T2' && !FallKit.state.ai.ready){ setStatus('st5','T2 selected · click preload T2 model in step 1 first','err'); return; }
+  if (tier === 'T3' && !FallKit.state.config.api_key){ setStatus('st5','T3 selected · set API key via open cascade settings in step 1','err'); return; }
   const mode = $('mode').value;
   if (mode === 'queue'){ await runQueue(); return; }
   $('gen-sdk').disabled = true;
