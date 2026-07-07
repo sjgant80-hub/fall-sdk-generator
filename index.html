@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fall-sdk-generator · WebLLM template forge</title>
+<meta name="description" content="WebLLM-powered SDK+MCP generator. Consumes foldkit-sdk + foldkit-mcp exemplars, fills their shape for any estate tool. Runs Llama 3.1 8B in your browser. Zero Claude tokens per repo.">
+<meta name="author" content="AI-Native Solutions">
+<meta name="theme-color" content="#1a1a1e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231a1a1e'/%3E%3Ctext x='16' y='22' font-family='serif' font-size='18' fill='%237a9c7e' text-anchor='middle'%3E%E2%97%8A%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--void:#1a1a1e;--deep:#212127;--surface:#2a2a30;--raised:#33333a;--line:rgba(232,228,219,0.08);--line2:rgba(232,228,219,0.16);--text:#e8e4db;--muted:#928d80;--dim:#6b6660;--sage:#7a9c7e;--sage-dim:rgba(122,156,126,0.14);--amber:#d4a052;--amber-dim:rgba(212,160,82,0.12);--coral:#d67a5a;--coral-glow:rgba(214,122,90,0.15);--serif:'Cormorant Garamond','Iowan Old Style',Georgia,serif;--sans:'Inter',-apple-system,system-ui,sans-serif;--mono:'JetBrains Mono','IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:transparent;color:inherit}
+input,textarea,select{font-family:inherit;background:transparent;color:var(--text);border:none;outline:none;width:100%}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.2}
+h1{font-size:36px;letter-spacing:0.01em;margin-bottom:8px}
+h1 em{color:var(--sage);font-style:italic}
+h2{font-size:22px;color:var(--text);margin-bottom:10px}
+h2 em{color:var(--sage);font-style:italic}
+h3{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.14em;font-family:var(--mono);font-weight:500}
+.topbar{background:rgba(26,26,30,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:22px}
+.brand .glyph{color:var(--sage);font-size:22px}
+.brand .co{color:var(--dim);font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;margin-left:6px;text-transform:uppercase}
+.tabs{display:flex;gap:4px}
+.tab{color:var(--muted);padding:6px 12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase}
+.tab.on{background:var(--sage-dim);color:var(--sage)}
+main{padding:26px 24px 80px;max-width:1000px;margin:0 auto;width:100%}
+.hero{margin-bottom:26px}
+.hero p{color:var(--muted);max-width:640px;font-size:15px}
+.hero p em{color:var(--sage);font-style:italic}
+.step{background:var(--deep);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;transition:border-color .2s}
+.step.on{border-color:var(--sage-dim)}
+.step.done{border-color:rgba(122,156,126,0.4);background:linear-gradient(to bottom right,var(--deep),rgba(122,156,126,0.03))}
+.step-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;border:1px solid var(--line2)}
+.step.on .step-num{background:var(--sage-dim);color:var(--sage);border-color:var(--sage)}
+.step.done .step-num{background:var(--sage);color:var(--void);border-color:var(--sage)}
+.step h2{margin-bottom:0;font-size:20px}
+.step p{color:var(--muted);margin-bottom:12px;font-size:14px}
+.step p em{color:var(--sage);font-style:italic}
+.big-btn{background:var(--sage);color:var(--void);padding:12px 26px;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;margin-right:8px;transition:all .15s}
+.big-btn:hover{background:#8db091}
+.big-btn:disabled{opacity:0.4;cursor:not-allowed}
+.big-btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2)}
+.big-btn.ghost:hover{background:var(--surface)}
+.big-btn.amber{background:var(--amber);color:var(--void)}
+.big-btn.amber:hover{background:#dcae66}
+.field{margin-bottom:12px}
+.field label{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:6px}
+.field input,.field textarea,.field select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:13px}
+.field textarea{min-height:120px;resize:vertical;line-height:1.5}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--sage)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;margin-bottom:10px}
+.check input{width:auto}
+.progress{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;margin:12px 0}
+.progress-fill{height:100%;background:linear-gradient(to right,var(--sage),var(--amber));transition:width .3s;width:0}
+.status{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-top:8px}
+.status.ok{color:var(--sage)}
+.status.err{color:var(--coral)}
+.status.warn{color:var(--amber)}
+.log{background:var(--void);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);max-height:200px;overflow-y:auto;line-height:1.6;margin-top:10px;white-space:pre-wrap;word-break:break-word}
+.log-line{margin-bottom:2px}
+.log-line.ok{color:var(--sage)}
+.log-line.err{color:var(--coral)}
+.log-line.warn{color:var(--amber)}
+.file-preview{background:var(--void);border:1px solid var(--line);border-radius:8px;margin-top:10px;overflow:hidden}
+.file-preview details{border-top:1px solid var(--line)}
+.file-preview details:first-child{border-top:none}
+.file-preview summary{padding:9px 14px;font-family:var(--mono);font-size:11px;color:var(--sage);cursor:pointer;letter-spacing:0.04em;background:var(--deep)}
+.file-preview summary:hover{background:var(--surface)}
+.file-preview pre{padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:340px;overflow-y:auto;line-height:1.5}
+.pill{display:inline-block;padding:3px 9px;background:var(--sage-dim);color:var(--sage);border-radius:12px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;margin-right:6px}
+.pill.amber{background:var(--amber-dim);color:var(--amber)}
+.pill.coral{background:var(--coral-glow);color:var(--coral)}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:640px){.dl-grid,.row{grid-template-columns:1fr}}
+.dl-card{background:var(--surface);border:1px solid var(--line2);border-radius:10px;padding:18px}
+.dl-card h3{color:var(--sage);margin-bottom:10px}
+.dl-card .size{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:12px}
+.push-block{background:var(--void);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--text);white-space:pre;overflow-x:auto;margin-top:10px;line-height:1.7}
+footer{padding:30px 24px 40px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em}
+footer em{color:var(--sage);font-style:italic;font-family:var(--serif);font-size:12px;letter-spacing:0}
+.hidden{display:none!important}
+.queue-item{padding:8px 12px;background:var(--surface);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:12px}
+.queue-item .st{font-size:10px;color:var(--muted)}
+.queue-item .st.ok{color:var(--sage)}
+.queue-item .st.err{color:var(--coral)}
+.queue-item .st.run{color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="glyph">◊</span> fall-sdk-generator <span class="co">· AI-Native Solutions</span></div>
+  <div class="tabs"><span class="tab on">wizard</span></div>
+</div>
+
+<main>
+<div class="hero">
+  <h1><em>WebLLM</em> template forge</h1>
+  <p>Consumes the <em>foldkit-sdk</em> and <em>foldkit-mcp</em> exemplars, then fills their shape for any estate tool using Llama 3.1 8B running in your browser. <em>Zero Claude tokens per repo.</em></p>
+</div>
+
+<div class="step on" id="s1">
+  <div class="step-head"><div class="step-num">1</div><h2>Load <em>WebLLM</em></h2></div>
+  <p>Loads Llama 3.1 8B via <span class="pill">@mlc-ai/web-llm</span>. First run downloads ~4GB to IndexedDB; subsequent loads are seconds.</p>
+  <button class="big-btn" id="load-engine">load engine</button>
+  <div class="progress"><div class="progress-fill" id="p1"></div></div>
+  <div class="status" id="st1">idle</div>
+</div>
+
+<div class="step" id="s2">
+  <div class="step-head"><div class="step-num">2</div><h2>Load <em>exemplars</em></h2></div>
+  <p>Fetches <span class="pill">foldkit-sdk</span> + <span class="pill">foldkit-mcp</span> raw files. These become the shape Llama fills.</p>
+  <button class="big-btn" id="load-ex">fetch exemplars</button>
+  <div class="status" id="st2">idle</div>
+  <div class="file-preview hidden" id="ex-preview"></div>
+</div>
+
+<div class="step" id="s3">
+  <div class="step-head"><div class="step-num">3</div><h2>Choose <em>input</em></h2></div>
+  <p>Pick a source: a repo name to fetch from <em>sjgant80-hub</em>, direct source paste, or a queue of repo names for batch mode.</p>
+  <div class="field">
+    <label>mode</label>
+    <select id="mode">
+      <option value="repo">repo · fetch from sjgant80-hub</option>
+      <option value="paste">paste · direct source</option>
+      <option value="queue">queue · batch multiple repos</option>
+    </select>
+  </div>
+  <div id="mode-repo">
+    <div class="field"><label>repo name (without owner)</label><input id="repo-name" placeholder="e.g. fallscribe"></div>
+  </div>
+  <div id="mode-paste" class="hidden">
+    <div class="field"><label>tool name</label><input id="paste-name" placeholder="e.g. mytool"></div>
+    <div class="field"><label>source code (main .js)</label><textarea id="paste-src" placeholder="paste the tool source here"></textarea></div>
+    <div class="field"><label>readme (optional)</label><textarea id="paste-readme" placeholder="paste README.md contents"></textarea></div>
+  </div>
+  <div id="mode-queue" class="hidden">
+    <div class="field"><label>repo names · one per line</label><textarea id="queue-list" placeholder="fallscribe&#10;sididy-didi&#10;botler"></textarea></div>
+  </div>
+</div>
+
+<div class="step" id="s4">
+  <div class="step-head"><div class="step-num">4</div><h2>Configure</h2></div>
+  <div class="row">
+    <div class="field"><label>github token (optional · for private repos)</label><input id="gh-token" type="password" placeholder="ghp_..."></div>
+    <div class="field"><label>model</label><select id="model">
+      <option value="Llama-3.1-8B-Instruct-q4f32_1-MLC">Llama 3.1 8B · q4f32 · default</option>
+      <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 3B · faster · less accurate</option>
+      <option value="Llama-3.2-1B-Instruct-q4f32_1-MLC">Llama 3.2 1B · tiny · draft-quality only</option>
+      <option value="Qwen2.5-7B-Instruct-q4f16_1-MLC">Qwen 2.5 7B · alt · strong on code</option>
+    </select></div>
+  </div>
+  <div class="check"><input type="checkbox" id="skip-exists" checked> <label for="skip-exists">skip repos that already have <span class="pill">-sdk</span> / <span class="pill">-mcp</span> companions</label></div>
+</div>
+
+<div class="step" id="s5">
+  <div class="step-head"><div class="step-num">5</div><h2>Generate <em>SDK</em></h2></div>
+  <p>Streams Llama with structured prompt. Files: <span class="pill">src/index.js</span> <span class="pill">src/index.d.ts</span> <span class="pill">package.json</span> <span class="pill">README.md</span> <span class="pill">examples/quick-start.mjs</span></p>
+  <button class="big-btn" id="gen-sdk" disabled>generate sdk</button>
+  <div class="progress"><div class="progress-fill" id="p5"></div></div>
+  <div class="status" id="st5">idle</div>
+  <div class="log hidden" id="log5"></div>
+  <div class="file-preview hidden" id="sdk-preview"></div>
+  <div class="hidden" id="q5-status"></div>
+</div>
+
+<div class="step" id="s6">
+  <div class="step-head"><div class="step-num">6</div><h2>Generate <em>MCP</em></h2></div>
+  <p>Files: <span class="pill">src/server.js</span> <span class="pill">src/tools.js</span> <span class="pill">src/resources.js</span> <span class="pill">package.json</span> <span class="pill">manifest.json</span> <span class="pill">README.md</span></p>
+  <button class="big-btn" id="gen-mcp" disabled>generate mcp</button>
+  <div class="progress"><div class="progress-fill" id="p6"></div></div>
+  <div class="status" id="st6">idle</div>
+  <div class="log hidden" id="log6"></div>
+  <div class="file-preview hidden" id="mcp-preview"></div>
+  <div class="hidden" id="q6-status"></div>
+</div>
+
+<div class="step" id="s7">
+  <div class="step-head"><div class="step-num">7</div><h2>Download <em>bundle</em></h2></div>
+  <p>Creates two STORE-method zip files. Everything Llama produced, packaged for one-click download.</p>
+  <button class="big-btn" id="build-zip" disabled>build zips</button>
+  <div class="status" id="st7">idle</div>
+  <div class="dl-grid hidden" id="dl-grid"></div>
+</div>
+
+<div class="step" id="s8">
+  <div class="step-head"><div class="step-num">8</div><h2>Push <em>instructions</em></h2></div>
+  <p>Shell commands to unzip, create both GitHub repos, enable Pages, and tag v1.0.0. <em>Review generated output before pushing.</em></p>
+  <div class="push-block hidden" id="push-block"></div>
+</div>
+
+</main>
+
+<footer>
+  <em>fall-sdk-generator</em> · <span>WebLLM template forge</span> · AI-Native Solutions · MIT
+</footer>
+
+<script type="module">
+import { SDKGenerator } from './generator.js';
+
+const $ = id => document.getElementById(id);
+const gen = new SDKGenerator();
+window.__gen = gen; // for debug
+const state = {
+  engineReady: false,
+  exemplars: null,
+  sdkFiles: null,
+  mcpFiles: null,
+  currentName: null,
+  queueResults: [] // [{name, sdkFiles, mcpFiles, sdkZip, mcpZip, err}]
+};
+
+function markStep(n, cls){
+  for (let i=1;i<=8;i++){
+    const el = $('s'+i);
+    if (!el) continue;
+    el.classList.remove('on','done');
+  }
+  for (let i=1;i<n;i++) $('s'+i)?.classList.add('done');
+  $('s'+n)?.classList.add('on');
+  if (cls==='done') $('s'+n)?.classList.add('done');
+}
+function setStatus(id, txt, cls){
+  const el = $(id); if (!el) return;
+  el.textContent = txt;
+  el.className = 'status ' + (cls||'');
+}
+function setProgress(id, pct){ $(id).style.width = Math.min(100,Math.max(0,pct)) + '%'; }
+function log(id, line, cls){
+  const el = $(id);
+  el.classList.remove('hidden');
+  const div = document.createElement('div');
+  div.className = 'log-line ' + (cls||'');
+  div.textContent = line;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+function renderFiles(hostId, files){
+  const host = $(hostId);
+  host.classList.remove('hidden');
+  host.innerHTML = '';
+  for (const [path, content] of Object.entries(files)){
+    const d = document.createElement('details');
+    const s = document.createElement('summary');
+    s.textContent = `${path} · ${content.length} chars`;
+    const p = document.createElement('pre');
+    p.textContent = content.slice(0, 4000) + (content.length > 4000 ? '\n... [truncated in preview]' : '');
+    d.appendChild(s); d.appendChild(p);
+    host.appendChild(d);
+  }
+}
+
+// ---- Step 1
+$('load-engine').addEventListener('click', async () => {
+  markStep(1);
+  $('load-engine').disabled = true;
+  setStatus('st1', 'loading engine · this may take minutes on first run');
+  try {
+    const modelId = $('model').value;
+    await gen.loadEngine(modelId, (r) => {
+      setProgress('p1', r.progress * 100);
+      setStatus('st1', r.text);
+    });
+    state.engineReady = true;
+    setStatus('st1', 'engine ready · ' + modelId, 'ok');
+    setProgress('p1', 100);
+    markStep(2);
+  } catch(e){
+    setStatus('st1', 'engine failed: ' + e.message, 'err');
+    $('load-engine').disabled = false;
+  }
+});
+
+// ---- Step 2
+$('load-ex').addEventListener('click', async () => {
+  $('load-ex').disabled = true;
+  setStatus('st2', 'fetching foldkit-sdk + foldkit-mcp raw files');
+  try {
+    const ex = await gen.loadExemplars();
+    state.exemplars = ex;
+    setStatus('st2', `loaded · sdk:${Object.keys(ex.sdkTemplate).length} files · mcp:${Object.keys(ex.mcpTemplate).length} files`, 'ok');
+    const host = $('ex-preview');
+    host.classList.remove('hidden');
+    host.innerHTML = '';
+    const both = { ...Object.fromEntries(Object.entries(ex.sdkTemplate).map(([k,v])=>['sdk/'+k, v])),
+                   ...Object.fromEntries(Object.entries(ex.mcpTemplate).map(([k,v])=>['mcp/'+k, v])) };
+    renderFiles('ex-preview', both);
+    markStep(3);
+    $('gen-sdk').disabled = false;
+  } catch(e){
+    setStatus('st2', 'fetch failed: ' + e.message, 'err');
+    $('load-ex').disabled = false;
+  }
+});
+
+// ---- Step 3 mode switch
+$('mode').addEventListener('change', () => {
+  const m = $('mode').value;
+  ['repo','paste','queue'].forEach(k => $('mode-'+k).classList.toggle('hidden', k !== m));
+});
+
+// helpers for generation
+async function fetchTarget(){
+  const mode = $('mode').value;
+  const token = $('gh-token').value.trim() || null;
+  if (mode === 'repo'){
+    const nm = $('repo-name').value.trim();
+    if (!nm) throw new Error('give a repo name');
+    return await gen.fetchTool(nm, token);
+  }
+  if (mode === 'paste'){
+    const nm = $('paste-name').value.trim();
+    if (!nm) throw new Error('give a tool name');
+    return { name: nm, source: $('paste-src').value, readme: $('paste-readme').value };
+  }
+  throw new Error('queue mode uses runQueue()');
+}
+async function checkExists(name){
+  const token = $('gh-token').value.trim();
+  const h = token ? { Authorization: 'token '+token } : {};
+  try {
+    const r = await fetch(`https://api.github.com/repos/sjgant80-hub/${name}-sdk`, { headers: h });
+    if (r.status === 200) return true;
+  } catch {}
+  return false;
+}
+
+// ---- Step 5 SDK
+$('gen-sdk').addEventListener('click', async () => {
+  if (!state.engineReady){ setStatus('st5','load engine first','err'); return; }
+  if (!state.exemplars){ setStatus('st5','load exemplars first','err'); return; }
+  const mode = $('mode').value;
+  if (mode === 'queue'){ await runQueue(); return; }
+  $('gen-sdk').disabled = true;
+  markStep(5);
+  setStatus('st5','fetching target');
+  $('log5').innerHTML = ''; $('log5').classList.remove('hidden');
+  try {
+    const target = await fetchTarget();
+    state.currentName = target.name;
+    if ($('skip-exists').checked && await checkExists(target.name)){
+      setStatus('st5', `skipped · ${target.name}-sdk already exists`, 'warn');
+      $('gen-sdk').disabled = false;
+      return;
+    }
+    log('log5', `target: ${target.name} · ${target.source.length} chars source`, 'ok');
+    setStatus('st5','streaming llama · generating sdk files');
+    setProgress('p5', 10);
+    const files = await gen.generateSDK(target, state.exemplars.sdkTemplate, (info) => {
+      if (info.type === 'chunk') setProgress('p5', 10 + info.pct * 0.85);
+      if (info.type === 'file') log('log5', `wrote ${info.path} · ${info.size} chars`, 'ok');
+      if (info.type === 'retry') log('log5', `retry ${info.n} · ${info.reason}`, 'warn');
+      if (info.type === 'info') log('log5', info.msg);
+    });
+    state.sdkFiles = files;
+    setProgress('p5', 100);
+    setStatus('st5', `sdk generated · ${Object.keys(files).length} files`, 'ok');
+    renderFiles('sdk-preview', files);
+    $('gen-mcp').disabled = false;
+    markStep(6);
+  } catch(e){
+    setStatus('st5','sdk failed: '+e.message, 'err');
+    log('log5', 'ERROR: '+e.message, 'err');
+    $('gen-sdk').disabled = false;
+  }
+});
+
+// ---- Step 6 MCP
+$('gen-mcp').addEventListener('click', async () => {
+  if (!state.sdkFiles && $('mode').value !== 'queue'){
+    // allow standalone mcp if user has target
+  }
+  $('gen-mcp').disabled = true;
+  markStep(6);
+  setStatus('st6','streaming llama · generating mcp files');
+  $('log6').innerHTML = ''; $('log6').classList.remove('hidden');
+  setProgress('p6', 10);
+  try {
+    const target = state.currentName
+      ? { name: state.currentName, source: '', readme: '' }
+      : await fetchTarget();
+    if (!target.source && state.sdkFiles) target.source = state.sdkFiles['src/index.js'] || '';
+    const files = await gen.generateMCP(target, state.exemplars.mcpTemplate, (info) => {
+      if (info.type === 'chunk') setProgress('p6', 10 + info.pct * 0.85);
+      if (info.type === 'file') log('log6', `wrote ${info.path} · ${info.size} chars`, 'ok');
+      if (info.type === 'retry') log('log6', `retry ${info.n} · ${info.reason}`, 'warn');
+      if (info.type === 'info') log('log6', info.msg);
+    });
+    state.mcpFiles = files;
+    setProgress('p6', 100);
+    setStatus('st6', `mcp generated · ${Object.keys(files).length} files`, 'ok');
+    renderFiles('mcp-preview', files);
+    $('build-zip').disabled = false;
+    markStep(7);
+  } catch(e){
+    setStatus('st6','mcp failed: '+e.message, 'err');
+    log('log6','ERROR: '+e.message, 'err');
+    $('gen-mcp').disabled = false;
+  }
+});
+
+// ---- Queue mode
+async function runQueue(){
+  const list = $('queue-list').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (!list.length){ setStatus('st5','queue empty','err'); return; }
+  const qs = $('q5-status'); qs.classList.remove('hidden'); qs.innerHTML = '';
+  state.queueResults = [];
+  for (const nm of list){
+    const row = document.createElement('div');
+    row.className = 'queue-item';
+    row.innerHTML = `<span>${nm}</span><span class="st run">running</span>`;
+    qs.appendChild(row);
+    try {
+      if ($('skip-exists').checked && await checkExists(nm)){
+        row.querySelector('.st').textContent = 'skipped · exists';
+        row.querySelector('.st').className = 'st warn';
+        continue;
+      }
+      const token = $('gh-token').value.trim() || null;
+      const target = await gen.fetchTool(nm, token);
+      const sdkFiles = await gen.generateSDK(target, state.exemplars.sdkTemplate, () => {});
+      const mcpFiles = await gen.generateMCP(target, state.exemplars.mcpTemplate, () => {});
+      const sdkZip = gen.packageAsZip(sdkFiles, nm+'-sdk');
+      const mcpZip = gen.packageAsZip(mcpFiles, nm+'-mcp');
+      state.queueResults.push({ name: nm, sdkFiles, mcpFiles, sdkZip, mcpZip });
+      row.querySelector('.st').textContent = 'ok';
+      row.querySelector('.st').className = 'st ok';
+    } catch(e){
+      state.queueResults.push({ name: nm, err: e.message });
+      row.querySelector('.st').textContent = 'err: '+e.message.slice(0,40);
+      row.querySelector('.st').className = 'st err';
+    }
+  }
+  setStatus('st5', `queue done · ${state.queueResults.filter(r=>!r.err).length}/${list.length} succeeded`, 'ok');
+  // build download grid
+  const grid = $('dl-grid'); grid.classList.remove('hidden'); grid.innerHTML = '';
+  for (const r of state.queueResults){
+    if (r.err) continue;
+    for (const kind of ['sdk','mcp']){
+      const blob = r[kind+'Zip'];
+      const card = document.createElement('div');
+      card.className = 'dl-card';
+      card.innerHTML = `<h3>${r.name}-${kind}.zip</h3><div class="size">${(blob.size/1024).toFixed(1)} KB</div>`;
+      const btn = document.createElement('button');
+      btn.className = 'big-btn';
+      btn.textContent = 'download';
+      btn.onclick = () => downloadBlob(blob, `${r.name}-${kind}.zip`);
+      card.appendChild(btn);
+      grid.appendChild(card);
+    }
+  }
+  showPushBlock(state.queueResults.filter(r=>!r.err).map(r=>r.name));
+  markStep(8);
+}
+
+// ---- Step 7 zip
+$('build-zip').addEventListener('click', () => {
+  try {
+    const nm = state.currentName;
+    if (!nm) throw new Error('no target name');
+    const sdkZip = gen.packageAsZip(state.sdkFiles, nm+'-sdk');
+    const mcpZip = gen.packageAsZip(state.mcpFiles, nm+'-mcp');
+    const grid = $('dl-grid'); grid.classList.remove('hidden'); grid.innerHTML = '';
+    for (const [label, blob] of [[nm+'-sdk.zip', sdkZip], [nm+'-mcp.zip', mcpZip]]){
+      const card = document.createElement('div');
+      card.className = 'dl-card';
+      card.innerHTML = `<h3>${label}</h3><div class="size">${(blob.size/1024).toFixed(1)} KB</div>`;
+      const btn = document.createElement('button');
+      btn.className = 'big-btn';
+      btn.textContent = 'download';
+      btn.onclick = () => downloadBlob(blob, label);
+      card.appendChild(btn);
+      grid.appendChild(card);
+    }
+    setStatus('st7', 'zips ready', 'ok');
+    showPushBlock([nm]);
+    markStep(8);
+  } catch(e){
+    setStatus('st7','zip failed: '+e.message, 'err');
+  }
+});
+
+function downloadBlob(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function showPushBlock(names){
+  const lines = [];
+  lines.push('# review generated output before pushing');
+  lines.push('cd ~/Downloads');
+  for (const nm of names){
+    for (const kind of ['sdk','mcp']){
+      lines.push('');
+      lines.push(`# ${nm}-${kind}`);
+      lines.push(`unzip -o ${nm}-${kind}.zip -d ${nm}-${kind}`);
+      lines.push(`cd ${nm}-${kind}`);
+      lines.push('git init -q -b main');
+      lines.push('git add -A');
+      lines.push(`git -c user.email="sjgant80@gmail.com" -c user.name="AI-Native Solutions" commit -q -m "${nm}-${kind} v1.0.0 · generated by fall-sdk-generator (WebLLM · Llama 3.1 8B)"`);
+      lines.push(`gh repo create sjgant80-hub/${nm}-${kind} --public --source=. --remote=origin --push --description "${kind==='sdk'?'SDK':'MCP server'} for ${nm} · generated by fall-sdk-generator"`);
+      if (kind === 'sdk'){
+        lines.push(`gh api -X POST repos/sjgant80-hub/${nm}-${kind}/pages -f source[branch]=main -f source[path]=/ -f build_type=legacy 2>&1 || true`);
+      }
+      lines.push('git tag v1.0.0 && git push --tags');
+      lines.push('cd ..');
+    }
+  }
+  const pb = $('push-block');
+  pb.classList.remove('hidden');
+  pb.textContent = lines.join('\n');
+}
+
+// SW register
+if ('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
